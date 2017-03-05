@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "552318318895",
+    "firebase_url": "https://fcmdemoo.firebaseio.com",
+    "project_id": "fcmdemoo",
+    "storage_bucket": "fcmdemoo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552318318895:android:f9bb53a6892eddea",
+        "android_client_info": {
+          "package_name": "com.example.mxhung.blogsimple"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "552318318895-1mmpb1139m5a0ihqov836b3qmvo96ppu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCxzDBu72ukAA0IXujhS8x9PGBATLiHag"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
