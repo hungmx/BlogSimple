@@ -46,6 +46,7 @@ public class RegisterActivity extends AppCompatActivity {
     public  void signUp(){
         dialog.setMessage("Signing Up...");
         dialog.show();
+        name = etName.getText().toString();
         email = etEmail.getText().toString();
         password = etPassword.getText().toString();
         firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -58,7 +59,6 @@ public class RegisterActivity extends AppCompatActivity {
                     DatabaseReference current_user_id = mDatabase.child(user_id);
                     //them nut user_id cac thuoc tinh
                     current_user_id.child("name").setValue(name);
-                    current_user_id.child(password).setValue(password);
                     current_user_id.child("image").setValue("default");
 
                     Intent iMain = new Intent(RegisterActivity.this, MainActivity.class);

@@ -18,6 +18,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private RecyclerView rvListPost;
     private DatabaseReference mDatabase;
+    private DatabaseReference mDatabaseUser;
     private ArrayList<Blog> listBlog;
     BlogAdapter adapter = null;
     private final String TAG = "Main";
@@ -36,6 +38,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         rvListPost = (RecyclerView) findViewById(R.id.rvListPost);
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("User");
+
+        mDatabase.keepSynced(true);
+        mDatabaseUser.keepSynced(true);
+
+
         listBlog = new ArrayList<>();
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -43,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 //check xem da co tai khoan nao chua
                 if (firebaseAuth.getCurrentUser() == null){
-                    Intent iLogin = new Intent(MainActivity.this, RegisterActivity.class);
+                    Intent iLogin = new Intent(MainActivity.this, LoginActivity.class);
                     iLogin.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(iLogin);
                 }
@@ -91,6 +99,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        checkUserExist();
+    }
+
+    private void checkUserExist() {
+        if (mAuth.getCurrentUser() != null){
+            final String userId = mAuth.getCurrentUser().getUid();
+            mDatabaseUser.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    //neu o DB k co userId thi se sang man hinh cai dat user
+                    Boolean uid = dataSnapshot.hasChild(userId);
+                    Log.d("--uid", uid + "");
+                    if (!dataSnapshot.hasChild(userId)){
+                        Intent iSetting = new Intent(MainActivity.this, SettingActivity.class);
+                        startActivity(iSetting);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
     }
 
     @Override
