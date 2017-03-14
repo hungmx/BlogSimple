@@ -37,7 +37,8 @@ public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder
     public void onBindViewHolder(BlogViewHolder holder, int position) {
         Blog blog = listBlog.get(position);
         holder.tvTitle.setText(blog.getTitle());
-        holder.tvDesc.setText(blog.getDesc());
+        holder.tvDesc.setText(blog.getDescription());
+        holder.tvName.setText(blog.getUsername());
         Glide.with(context)
                 .load(blog.getImage())
                 .error(R.drawable.no_image)
@@ -55,11 +56,13 @@ public class BlogAdapter extends RecyclerView.Adapter<BlogAdapter.BlogViewHolder
         public TextView tvTitle;
         public TextView tvDesc;
         public ImageView imPost;
+        public TextView tvName;
         public BlogViewHolder(View itemView) {
             super(itemView);
 //            itemView = mView;
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
             tvDesc = (TextView) itemView.findViewById(R.id.tvDes);
+            tvName = (TextView) itemView.findViewById(R.id.tvName);
             imPost = (ImageView) itemView.findViewById(R.id.imPost);
 
         }
