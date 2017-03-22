@@ -11,14 +11,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.mxhung.blogsimple.model.Blog;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     private DatabaseReference mDatabaseBlog;
+    private boolean progressLike = false;
+
+    private DatabaseReference mDatabaseLike;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("User");
         mDatabaseBlog = FirebaseDatabase.getInstance().getReference().child("Blog");
+        mDatabaseBlog = FirebaseDatabase.getInstance().getReference().child("Like");
         mDatabase.keepSynced(true);
         mDatabaseUser.keepSynced(true);
 
@@ -67,62 +72,151 @@ public class MainActivity extends AppCompatActivity {
         };
 
 
-        adapter = new BlogAdapter(getApplicationContext(), listBlog);
-        Log.d(TAG + "--adapter", String.valueOf(adapter));
-        rvListPost.setHasFixedSize(true);
-        rvListPost.setLayoutManager(new LinearLayoutManager(this));
-        rvListPost.setItemAnimator(new DefaultItemAnimator());
+//        adapter = new BlogAdapter(getApplicationContext(), listBlog);
+//        Log.d(TAG + "--adapter", String.valueOf(adapter));
+//        rvListPost.setHasFixedSize(true);
+//        rvListPost.setLayoutManager(new LinearLayoutManager(this));
+//        rvListPost.setItemAnimator(new DefaultItemAnimator());
 //        rvListPost.setAdapter(adapter);
 
-        mDatabase.child("Blog").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                //doc du lieu ra tu nut con Blog
-                Blog blog = dataSnapshot.getValue(Blog.class);
-                String sss = dataSnapshot.getKey();
-                Log.d("---", sss);
-                //phải để tên title , description, image trùng vs trên firebase
-                Blog added = new Blog(blog.title, blog.description, blog.image, blog.username);
-                listBlog.add(added);
-                Log.d(TAG + "--listBlog", String.valueOf(listBlog));
-                adapter.notifyDataSetChanged();
-            }
+        loadData();
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+//        mDatabase.child("Blog").addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                //doc du lieu ra tu nut con Blog
+//                Blog blog = dataSnapshot.getValue(Blog.class);
+//                String sss = dataSnapshot.getKey();
+//                Log.d("---", sss);
+//                //phải để tên title , description, image trùng vs trên firebase
+//                Blog added = new Blog(blog.title, blog.description, blog.image, blog.username);
+//                listBlog.add(added);
+//                Log.d(TAG + "--listBlog", String.valueOf(listBlog));
+//                adapter.notifyDataSetChanged();
+//            }
+//
+//            @Override
+//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+//
+//            }
+//
+//            @Override
+//            public void onChildRemoved(DataSnapshot dataSnapshot) {
+//
+//            }
+//
+//            @Override
+//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
 
         checkUserExist();
 
 
-        rvListPost.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), rvListPost, new RecyclerTouchListener.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
+//        rvListPost.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), rvListPost, new RecyclerTouchListener.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(View view, int position) {
+//
+//            }
+//
+//            @Override
+//            public void onLongItemClick(View view, int position) {
+//
+//            }
+//        }));
+    }
 
-            }
+    private void loadData() {
+        FirebaseRecyclerAdapter<Blog, BlogViewHolde> fbadapter =
+                new FirebaseRecyclerAdapter<Blog, BlogViewHolde>(
+                        Blog.class,
+                        R.layout.item_post,
+                        BlogViewHolde.class,
+                        mDatabaseBlog
+                ) {
+                    @Override
+                    protected void populateViewHolder(final BlogViewHolde viewHolder, Blog model, final int position) {
+                        final String post_key = getRef(position).getKey();
+                        viewHolder.tvTitle.setText(model.getTitle());
+                        viewHolder.tvDesc.setText(model.getDescription());
+                        viewHolder.tvName.setText(model.getUsername());
+                        Glide.with(MainActivity.this)
+                                .load(model.getImage())
+                                .into(viewHolder.imPost);
 
-            @Override
-            public void onLongItemClick(View view, int position) {
+                        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Toast.makeText(MainActivity.this, post_key, Toast.LENGTH_SHORT).show();
+                            }
+                        });
 
-            }
-        }));
+                        mDatabaseLike.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.child(post_key).hasChild(mAuth.getCurrentUser().getUid())){
+                                    viewHolder.imLike.setImageResource(R.drawable.like);
+                                }else {
+                                    viewHolder.imLike.setImageResource(R.drawable.dislike);
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                        viewHolder.imLike.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                progressLike = true;
+
+                                mDatabaseLike.addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if (progressLike) {
+                                            //check xem da co id cua bai viet chua, neu chua thi set value
+                                            if (dataSnapshot.child(post_key).hasChild(mAuth.getCurrentUser().getUid())) {
+                                                //neu co r, nghia la click lan 2,thi se xoa gia tri
+                                                mDatabaseLike.child(post_key).child(mAuth.getCurrentUser().getUid()).removeValue();
+                                                progressLike = false;
+
+
+                                            } else {
+                                                mDatabaseLike.child(post_key).child(mAuth.getCurrentUser().getUid()).setValue("RandomValue");
+                                                progressLike = false;
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
+                            }
+
+
+                        });
+                    }
+                };
+
+        rvListPost = (RecyclerView) findViewById(R.id.rvListPost);
+        rvListPost.setHasFixedSize(true);
+        rvListPost.setLayoutManager(new LinearLayoutManager(this));
+        rvListPost.setItemAnimator(new DefaultItemAnimator());
+
+
+        rvListPost.setAdapter(fbadapter);
+        fbadapter.notifyDataSetChanged();
     }
 
     private void checkUserExist() {
@@ -170,50 +264,21 @@ public class MainActivity extends AppCompatActivity {
         mAuth.signOut();
     }
 
+    public class BlogViewHolde extends RecyclerView.ViewHolder {
+        TextView tvTitle;
+        TextView tvDesc;
+        ImageView imPost;
+        TextView tvName;
+        ImageButton imLike;
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
-
-        FirebaseRecyclerAdapter<Blog, BlogViewHolder> fbAdapter = new FirebaseRecyclerAdapter<Blog, BlogViewHolder>(
-                Blog.class,
-                R.layout.item_post,
-                BlogViewHolder.class,
-                mDatabaseBlog
-        ) {
-            @Override
-            protected void populateViewHolder(BlogViewHolder holder, Blog blog, int position) {
-                holder.tvTitle.setText(blog.getTitle());
-                holder.tvDesc.setText(blog.getDescription());
-                holder.tvName.setText(blog.getUsername());
-                Glide.with(getApplicationContext())
-                        .load(blog.getImage())
-                        .error(R.drawable.no_image)
-                        .skipMemoryCache(true)
-                        .into(holder.imPost);
-            }
-        };
-
-        rvListPost.setAdapter(fbAdapter);
-
-    }
-
-
-    public class BlogViewHolder extends RecyclerView.ViewHolder {
-        View mView;
-        public TextView tvTitle;
-        public TextView tvDesc;
-        public ImageView imPost;
-        public TextView tvName;
-
-        public BlogViewHolder(View itemView) {
+        public BlogViewHolde(View itemView) {
             super(itemView);
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
             tvDesc = (TextView) itemView.findViewById(R.id.tvDes);
             tvName = (TextView) itemView.findViewById(R.id.tvName);
             imPost = (ImageView) itemView.findViewById(R.id.imPost);
-
+            imLike = (ImageButton) itemView.findViewById(R.id.imLike);
         }
     }
+
 }
