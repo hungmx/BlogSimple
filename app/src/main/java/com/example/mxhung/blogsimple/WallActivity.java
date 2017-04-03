@@ -15,11 +15,9 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.mxhung.blogsimple.model.Blog;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -27,6 +25,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -35,10 +34,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-//hien thi cac bai Post
-public class MainActivity extends AppCompatActivity {
+public class WallActivity extends AppCompatActivity {
     private RecyclerView rvListPost;
     private DatabaseReference mDatabase;
+    private Query mQueryDatabase;
     private DatabaseReference mDatabaseUser;
     private ArrayList<Blog> listBlog;
     private BlogAdapter adapter = null;
@@ -52,15 +51,16 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference mDatabaseLike;
     @BindView(R.id.imAvatar)
     ImageView imAvatar;
+    @BindView(R.id.tvName)
+    TextView tvName;
 
     private String name;
     private String image;
-
     private ProgressDialog dialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_wall);
         init();
 
         checkCurrentUser();
@@ -69,30 +69,20 @@ public class MainActivity extends AppCompatActivity {
 
         setAdapter();
 
-//        loadData();
+//        checkUserSetting();
 
-        checkUserSetting();
-
-//        rvListPost.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), rvListPost, new RecyclerTouchListener.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(View view, int position) {
-//                String key = listBlog.get(position).getKey();
-//                Intent iDetail = new Intent(MainActivity.this, DetailPost.class);
-//                iDetail.putExtra("key", key);
-//                startActivity(iDetail);
-//            }
-//
-//            @Override
-//            public void onLongItemClick(View view, int position) {
-//
-//            }
-//        }));
     }
 
     private void init() {
         ButterKnife.bind(this);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
         rvListPost = (RecyclerView) findViewById(R.id.rvListPost);
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("Blog");
+        mQueryDatabase = mDatabase.orderByChild("uid").equalTo(mAuth.getCurrentUser().getUid());
+
         mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("User");
         mDatabaseBlog = FirebaseDatabase.getInstance().getReference().child("Blog");
         mDatabaseLike = FirebaseDatabase.getInstance().getReference().child("Like");
@@ -109,12 +99,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @OnClick(R.id.imAvatar)
-    public void wall() {
-        Intent iWall = new Intent(MainActivity.this, WallActivity.class);
-        startActivity(iWall);
-    }
-
     private void setAdapter() {
         adapter = new BlogAdapter(getApplicationContext(), listBlog);
         Log.d(TAG + "--adapter", String.valueOf(adapter));
@@ -122,11 +106,13 @@ public class MainActivity extends AppCompatActivity {
         rvListPost.setLayoutManager(new LinearLayoutManager(this));
         rvListPost.setItemAnimator(new DefaultItemAnimator());
         rvListPost.setAdapter(adapter);
+
+
     }
 
     private void getData() {
         //get data
-        mDatabase.child("Blog").addChildEventListener(new ChildEventListener() {
+        mQueryDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 //doc du lieu ra tu nut con Blog
@@ -164,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void checkCurrentUser() {
-        mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -178,14 +163,14 @@ public class MainActivity extends AppCompatActivity {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             name = (String) dataSnapshot.child("name").getValue();
                             image = (String) dataSnapshot.child("image").getValue();
-
                             Glide.with(getApplicationContext())
                                     .load(image)
                                     .error(R.drawable.no_image)
                                     .into(imAvatar);
+                            tvName.setText(name);
 
                             dialog.dismiss();
-                            Toast.makeText(MainActivity.this, "Chào mừng bạn đến với Blog Bear", Toast.LENGTH_SHORT).show();
+//                            Toast.makeText(WallActivity.this, "Chào mừng bạn đến với Blog Bear", Toast.LENGTH_SHORT).show();
 
                         }
 
@@ -197,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
                 } else {
                     // User is signed out
-                    Intent iLogin = new Intent(MainActivity.this, LoginActivity.class);
+                    Intent iLogin = new Intent(WallActivity.this, LoginActivity.class);
                     iLogin.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(iLogin);
                 }
@@ -206,99 +191,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.btStatus)
-    public void status() {
-        Intent iPost = new Intent(MainActivity.this, PostActivity.class);
+    public void status(){
+        Intent iPost = new Intent(WallActivity.this, PostActivity.class);
         iPost.putExtra("avatar", image);
         startActivity(iPost);
     }
 
-    private void loadData() {
-        FirebaseRecyclerAdapter<Blog, BlogViewHolde> fbadapter =
-                new FirebaseRecyclerAdapter<Blog, BlogViewHolde>(
-                        Blog.class,
-                        R.layout.item_post,
-                        BlogViewHolde.class,
-                        mDatabaseBlog
-                ) {
-                    @Override
-                    protected void populateViewHolder(final BlogViewHolde viewHolder, Blog model, final int position) {
-                        final String post_key = getRef(position).getKey();
-                        viewHolder.tvTitle.setText(model.getTitle());
-                        viewHolder.tvDesc.setText(model.getDescription());
-                        viewHolder.tvName.setText(model.getUsername());
-                        Glide.with(MainActivity.this)
-                                .load(model.getImage())
-                                .into(viewHolder.imPost);
-
-                        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Toast.makeText(MainActivity.this, post_key, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-                        mDatabaseLike.addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.child(post_key).hasChild(mAuth.getCurrentUser().getUid())) {
-                                    viewHolder.imLike.setImageResource(R.drawable.like);
-                                } else {
-                                    viewHolder.imLike.setImageResource(R.drawable.dislike);
-
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-
-                        viewHolder.imLike.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                progressLike = true;
-
-                                mDatabaseLike.addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        if (progressLike) {
-                                            //check xem da co id cua bai viet chua, neu chua thi set value
-                                            if (dataSnapshot.child(post_key).hasChild(mAuth.getCurrentUser().getUid())) {
-                                                //neu co r, nghia la click lan 2,thi se xoa gia tri
-                                                mDatabaseLike.child(post_key).child(mAuth.getCurrentUser().getUid()).removeValue();
-                                                progressLike = false;
-
-
-                                            } else {
-                                                mDatabaseLike.child(post_key).child(mAuth.getCurrentUser().getUid()).setValue("RandomValue");
-                                                progressLike = false;
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-
-                                    }
-                                });
-
-                            }
-
-
-                        });
-                    }
-                };
-
-        rvListPost = (RecyclerView) findViewById(R.id.rvListPost);
-        rvListPost.setHasFixedSize(true);
-        rvListPost.setLayoutManager(new LinearLayoutManager(this));
-        rvListPost.setItemAnimator(new DefaultItemAnimator());
-
-
-        rvListPost.setAdapter(fbadapter);
-        fbadapter.notifyDataSetChanged();
-    }
 
     private void checkUserSetting() {
         if (mAuth.getCurrentUser() != null) {
@@ -313,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     Boolean uid = dataSnapshot.hasChild(userId);
                     Log.d("--uid", uid + "");
                     if (!dataSnapshot.hasChild(userId)) {
-                        Intent iSetting = new Intent(MainActivity.this, SettingActivity.class);
+                        Intent iSetting = new Intent(WallActivity.this, SettingActivity.class);
                         iSetting.putExtra("name", "");
                         iSetting.putExtra("image", "");
                         startActivity(iSetting);
@@ -334,26 +232,26 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    //menu setting
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.ic_post) {
-            Intent iPost = new Intent(MainActivity.this, PostActivity.class);
-            iPost.putExtra("avatar", image);
-            startActivity(iPost);
-        }
-
-        if (item.getItemId() == R.id.action_logout) {
-            logOut();
-        }
-        if (item.getItemId() == R.id.action_setting) {
-            Intent iSetting = new Intent(MainActivity.this, SettingActivity.class);
-            iSetting.putExtra("name", name);
-            iSetting.putExtra("image", image);
-            startActivity(iSetting);
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//    //menu setting
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        if (item.getItemId() == R.id.ic_post) {
+//            Intent iPost = new Intent(WallActivity.this, PostActivity.class);
+//            iPost.putExtra("avatar", image);
+//            startActivity(iPost);
+//        }
+//
+//        if (item.getItemId() == R.id.action_logout) {
+//            logOut();
+//        }
+//        if (item.getItemId() == R.id.action_setting){
+//            Intent iSetting = new Intent(MainActivity.this, SettingActivity.class);
+//            iSetting.putExtra("name", name);
+//            iSetting.putExtra("image", image);
+//            startActivity(iSetting);
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     private void logOut() {
         mAuth.signOut();
@@ -390,5 +288,14 @@ public class MainActivity extends AppCompatActivity {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            finish();
+        }
+        return true;
     }
 }

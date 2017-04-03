@@ -6,9 +6,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -24,27 +26,42 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class SettingActivity extends AppCompatActivity {
-    @BindView(R.id.imAvatar)
-    ImageButton imAvatar;
-    @BindView(R.id.etName)
-    EditText etName;
+    @BindView(R.id.imAvatar) ImageButton imAvatar;
+    @BindView(R.id.etName) EditText etName;
     private static final int GALLERY_REQUEST = 1;
     private Uri imageUri = null;
 
-    private DatabaseReference mDatabase;
+    private DatabaseReference mDatabaseUser;
     private FirebaseAuth mAuth;
     private StorageReference mStorage;
     private ProgressDialog dialog;
+    private String name;
+    private String image;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
         ButterKnife.bind(this);
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("User");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        name = getIntent().getStringExtra("name");
+        image = getIntent().getStringExtra("image");
+        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("User");
         mAuth = FirebaseAuth.getInstance();
         //them nut con image
         mStorage = FirebaseStorage.getInstance().getReference().child("Profile_image");
         dialog = new ProgressDialog(this);
+
+        if (!name.equals("")){
+            etName.setText(name);
+        }
+        if (!image.equals("")){
+            Glide.with(getApplicationContext())
+                    .load(image)
+                    .error(R.drawable.no_image)
+                    .into(imAvatar);
+        }
     }
 
     @OnClick(R.id.imAvatar)
@@ -97,8 +114,8 @@ public class SettingActivity extends AppCompatActivity {
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     String downloadUri = taskSnapshot.getDownloadUrl().toString();
 
-                    mDatabase.child(uID).child("name").setValue(name);
-                    mDatabase.child(uID).child("image").setValue(downloadUri);
+                    mDatabaseUser.child(uID).child("name").setValue(name);
+                    mDatabaseUser.child(uID).child("image").setValue(downloadUri);
                     dialog.dismiss();
 
                     Intent iMain = new Intent(SettingActivity.this, MainActivity.class);
@@ -107,5 +124,12 @@ public class SettingActivity extends AppCompatActivity {
             });
         }
         }
-
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home){
+            finish();
+        }
+        return true;
+    }
 }
