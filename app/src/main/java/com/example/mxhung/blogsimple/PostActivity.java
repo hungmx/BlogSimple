@@ -131,9 +131,6 @@ public class PostActivity extends AppCompatActivity {
     }
 
     private void startPost() {
-        dialog.setMessage("Dang post...");
-        dialog.show();
-
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
         Date date = new Date();
         final String time = dateFormat.format(date);
@@ -142,6 +139,9 @@ public class PostActivity extends AppCompatActivity {
         final String description = etDescription.getText().toString().trim();
 
         if (!TextUtils.isEmpty(description)) {
+            dialog.setMessage("Dang post...");
+            dialog.show();
+
             if (imageUri != null) {
                 StorageReference filepath = mStorage.child("Blog_Images").child(imageUri.getLastPathSegment());
                 Log.d(TAG + "--imageUri", imageUri.getLastPathSegment());

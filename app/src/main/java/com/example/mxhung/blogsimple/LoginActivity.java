@@ -184,6 +184,8 @@ public class LoginActivity extends AppCompatActivity {
                     //TH co tai khoan Auth nhung chua co trong DB User
                     Intent iMain = new Intent(LoginActivity.this, SettingActivity.class);
                     iMain.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    iMain.putExtra("name", "setting");
+                    iMain.putExtra("image", "setting");
                     startActivity(iMain);
                 }
             }

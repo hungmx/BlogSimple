@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.mxhung.blogsimple.chat.UserActivity;
 import com.example.mxhung.blogsimple.model.Blog;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -61,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mAuth = FirebaseAuth.getInstance();
+
         init();
 
         checkCurrentUser();
@@ -164,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void checkCurrentUser() {
-        mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -314,8 +317,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("--uid", uid + "");
                     if (!dataSnapshot.hasChild(userId)) {
                         Intent iSetting = new Intent(MainActivity.this, SettingActivity.class);
-                        iSetting.putExtra("name", "");
-                        iSetting.putExtra("image", "");
+                        iSetting.putExtra("name", "setting");
+                        iSetting.putExtra("image", "setting");
                         startActivity(iSetting);
                     }
                 }
@@ -341,6 +344,10 @@ public class MainActivity extends AppCompatActivity {
             Intent iPost = new Intent(MainActivity.this, PostActivity.class);
             iPost.putExtra("avatar", image);
             startActivity(iPost);
+        }
+        if (item.getItemId() == R.id.ic_message){
+            Intent iMessage = new Intent(MainActivity.this, UserActivity.class);
+            startActivity(iMessage);
         }
 
         if (item.getItemId() == R.id.action_logout) {

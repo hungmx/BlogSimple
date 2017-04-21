@@ -35,8 +35,8 @@ public class SettingActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private StorageReference mStorage;
     private ProgressDialog dialog;
-    private String name;
-    private String image;
+    private String name = "";
+    private String image = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,10 +53,10 @@ public class SettingActivity extends AppCompatActivity {
         mStorage = FirebaseStorage.getInstance().getReference().child("Profile_image");
         dialog = new ProgressDialog(this);
 
-        if (!name.equals("")){
+        if (!name.equals("setting")){
             etName.setText(name);
         }
-        if (!image.equals("")){
+        if (!image.equals("setting")){
             Glide.with(getApplicationContext())
                     .load(image)
                     .error(R.drawable.no_image)
@@ -114,6 +114,7 @@ public class SettingActivity extends AppCompatActivity {
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     String downloadUri = taskSnapshot.getDownloadUrl().toString();
 
+                    mDatabaseUser.child(uID).child("uId").setValue(uID);
                     mDatabaseUser.child(uID).child("name").setValue(name);
                     mDatabaseUser.child(uID).child("image").setValue(downloadUri);
                     dialog.dismiss();

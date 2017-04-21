@@ -7,6 +7,11 @@
         android:title="Add post"
         app:showAsAction="always" />
     <item
+        android:id="@+id/ic_message"
+        android:title="Message"
+        android:icon="@drawable/ic_chat"
+        app:showAsAction="always"/>
+    <item
         android:id="@+id/action_setting"
         android:title="Settings"
         app:showAsAction="never" />

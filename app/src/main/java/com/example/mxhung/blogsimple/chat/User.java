@@ -7,13 +7,15 @@ package com.example.mxhung.blogsimple.chat;
 public class User {
     public String name;
     public String image;
+    public String uId;
 
     public User() {
     }
 
-    public User(String name, String image) {
+    public User(String name, String image, String uId) {
         this.name = name;
         this.image = image;
+        this.uId = uId;
     }
 
     public String getName() {
@@ -30,5 +32,13 @@ public class User {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getuId() {
+        return uId;
+    }
+
+    public void setuId(String uId) {
+        this.uId = uId;
     }
 }

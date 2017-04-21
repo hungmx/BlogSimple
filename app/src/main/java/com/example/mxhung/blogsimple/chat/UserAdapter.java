@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.mxhung.blogsimple.R;
 
 import java.util.ArrayList;
@@ -35,7 +36,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserHolder> {
 
     @Override
     public void onBindViewHolder(UserHolder holder, int position) {
-
+        User user = list.get(position);
+        holder.tvName.setText(user.getName());
+        Glide.with(context)
+                .load(user.getImage())
+                .error(R.drawable.no_image)
+                .skipMemoryCache(true)
+                .into(holder.imAvatar);
     }
 
     @Override
@@ -49,6 +56,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserHolder> {
         public UserHolder(View itemView) {
             super(itemView);
             tvName = (TextView) itemView.findViewById(R.id.tvName);
+            imAvatar = (ImageView) itemView.findViewById(R.id.imAvatar);
+
         }
     }
 }

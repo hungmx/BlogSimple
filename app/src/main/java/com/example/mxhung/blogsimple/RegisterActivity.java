@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -26,10 +27,13 @@ public class RegisterActivity extends AppCompatActivity {
     String email, name, password;
     @BindView(R.id.etName)
     EditText etName;
-    @BindView(R.id.etEmail) EditText etEmail;
-    @BindView(R.id.etPassword) EditText etPassword;
+    @BindView(R.id.etEmail)
+    EditText etEmail;
+    @BindView(R.id.etPassword)
+    EditText etPassword;
     private ProgressDialog dialog;
     private DatabaseReference mDatabase;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,35 +47,42 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.btSignUp)
-    public  void signUp(){
-        dialog.setMessage("Signing Up...");
-        dialog.show();
+    public void signUp() {
+
         name = etName.getText().toString();
         email = etEmail.getText().toString();
         password = etPassword.getText().toString();
-        firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()){
-                    AuthResult authResult = task.getResult();
-                    Log.d("authResult", String.valueOf(authResult));
-                    String user_id = firebaseAuth.getCurrentUser().getUid();
-                    DatabaseReference current_user_id = mDatabase.child(user_id);
-                    //them nut user_id cac thuoc tinh
-                    current_user_id.child("name").setValue(name);
-                    current_user_id.child("image").setValue("default");
+        if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
+            dialog.setMessage("Signing Up...");
+            dialog.show();
 
-                    Intent iMain = new Intent(RegisterActivity.this, MainActivity.class);
-                    iMain.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(iMain);
-                    dialog.dismiss();
-                    Toast.makeText(RegisterActivity.this, "Ban da tao thanh cong", Toast.LENGTH_SHORT).show();
+            firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if (task.isSuccessful()) {
+                        AuthResult authResult = task.getResult();
+                        Log.d("authResult", String.valueOf(authResult));
+                        String user_id = firebaseAuth.getCurrentUser().getUid();
+                        DatabaseReference current_user_id = mDatabase.child(user_id);
+                        //them nut user_id cac thuoc tinh
+                        current_user_id.child("uId").setValue(user_id);
+                        current_user_id.child("name").setValue(name);
+                        current_user_id.child("image").setValue("default");
 
-                }else {
-                    dialog.dismiss();
-                    Toast.makeText(RegisterActivity.this, "Ban da tao that bai", Toast.LENGTH_SHORT).show();
+                        Intent iMain = new Intent(RegisterActivity.this, MainActivity.class);
+                        iMain.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(iMain);
+                        dialog.dismiss();
+                        Toast.makeText(RegisterActivity.this, "Ban da tao thanh cong", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        dialog.dismiss();
+                        Toast.makeText(RegisterActivity.this, "Ban da tao that bai", Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
-        });
+            });
+        }else {
+            Toast.makeText(this, "Bạn cần điền đầy đủ các trường", Toast.LENGTH_SHORT).show();
+        }
     }
 }

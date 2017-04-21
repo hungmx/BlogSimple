@@ -11,8 +11,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -198,81 +196,14 @@ public class WallActivity extends AppCompatActivity {
     }
 
 
-    private void checkUserSetting() {
-        if (mAuth.getCurrentUser() != null) {
-            final String userId = mAuth.getCurrentUser().getUid();
-            mDatabaseUser.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
-
-                    //neu o DB k co userId thi se sang man hinh cai dat user
-                    Boolean uid = dataSnapshot.hasChild(userId);
-                    Log.d("--uid", uid + "");
-                    if (!dataSnapshot.hasChild(userId)) {
-                        Intent iSetting = new Intent(WallActivity.this, SettingActivity.class);
-                        iSetting.putExtra("name", "");
-                        iSetting.putExtra("image", "");
-                        startActivity(iSetting);
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        }
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
-//    //menu setting
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        if (item.getItemId() == R.id.ic_post) {
-//            Intent iPost = new Intent(WallActivity.this, PostActivity.class);
-//            iPost.putExtra("avatar", image);
-//            startActivity(iPost);
-//        }
-//
-//        if (item.getItemId() == R.id.action_logout) {
-//            logOut();
-//        }
-//        if (item.getItemId() == R.id.action_setting){
-//            Intent iSetting = new Intent(MainActivity.this, SettingActivity.class);
-//            iSetting.putExtra("name", name);
-//            iSetting.putExtra("image", image);
-//            startActivity(iSetting);
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
 
-    private void logOut() {
-        mAuth.signOut();
-    }
 
-    public class BlogViewHolde extends RecyclerView.ViewHolder {
-        TextView tvTitle;
-        TextView tvDesc;
-        ImageView imPost;
-        TextView tvName;
-        ImageButton imLike;
-
-        public BlogViewHolde(View itemView) {
-            super(itemView);
-            tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
-            tvDesc = (TextView) itemView.findViewById(R.id.tvDes);
-            tvName = (TextView) itemView.findViewById(R.id.tvName);
-            imPost = (ImageView) itemView.findViewById(R.id.imPost);
-            imLike = (ImageButton) itemView.findViewById(R.id.imLike);
-        }
-    }
 
     @Override
     protected void onStart() {

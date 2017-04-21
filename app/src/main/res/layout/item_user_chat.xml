@@ -11,10 +11,10 @@
         android:orientation="horizontal"
         android:layout_margin="10dp">
 
-        <ImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/imAvatar"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:src="@drawable/no_image"/>
         <TextView
             android:id="@+id/tvName"
@@ -23,7 +23,9 @@
             android:text="Mau Xuan Hung"
             android:layout_marginLeft="10dp"
             android:textSize="16sp"
-            android:textColor="@android:color/black"/>
+            android:textColor="@android:color/black"
+            android:layout_marginTop="16dp"
+            />
 
         <TextView
             android:id="@+id/tvStatus"
